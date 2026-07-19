@@ -1,0 +1,62 @@
+{
+  "version": 1,
+  "title": "サンプルシーン",
+  "updatedAt": "2026-07-09T00:00:00.000Z",
+  "items": [
+    {
+      "id": "card_001",
+      "type": "card",
+      "title": "概要",
+      "body": "雑多なテキストを図として整理するデモです。"
+    },
+    {
+      "id": "note_001",
+      "type": "note",
+      "text": "期限を確認してください。リスクがある場合は早めに共有しましょう。",
+      "tone": "warning"
+    },
+    {
+      "id": "list_001",
+      "type": "list",
+      "title": "買い物リスト",
+      "items": ["牛乳", "卵", "パン"]
+    },
+    {
+      "id": "table_001",
+      "type": "table",
+      "title": "プラン比較",
+      "columns": ["項目", "A案", "B案"],
+      "rows": [
+        ["コスト", "低", "高"],
+        ["期間", "短", "長"]
+      ]
+    },
+    {
+      "id": "group_001",
+      "type": "group",
+      "title": "関連トピック"
+    },
+    {
+      "id": "card_002",
+      "type": "card",
+      "groupId": "group_001",
+      "title": "トピック A",
+      "body": "グループ内の説明カードです。"
+    },
+    {
+      "id": "card_003",
+      "type": "card",
+      "groupId": "group_001",
+      "title": "トピック B",
+      "body": "同じグループに属する2つ目のカードです。"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_001",
+      "source": "card_001",
+      "target": "list_001",
+      "label": "関連"
+    }
+  ]
+}

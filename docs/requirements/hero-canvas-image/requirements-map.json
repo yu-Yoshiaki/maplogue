@@ -1,0 +1,830 @@
+{
+  "project": {
+    "name": "realtime-draw hero canvas image",
+    "date": "2026-07-10",
+    "status": "draft",
+    "summary": "data/option-2.png の手書きで温かいヒーローイメージを、既存 React Flow キャンバス上の実ノードとエッジで再現するための要件定義。",
+    "input_path": "docs/requirements/hero-canvas-image/requirements-input.md"
+  },
+  "sources": [
+    {
+      "path": "docs/requirements/hero-canvas-image/requirements-input.md",
+      "role": "input"
+    },
+    {
+      "path": "docs/requirements/hero-canvas-image/requirements.md",
+      "role": "decision"
+    },
+    {
+      "path": "docs/requirements/hero-canvas-image/assets/option-2.png",
+      "role": "reference"
+    },
+    {
+      "path": "src/App.tsx",
+      "role": "reference"
+    },
+    {
+      "path": "src/flow/nodes",
+      "role": "reference"
+    },
+    {
+      "path": "src/styles.css",
+      "role": "reference"
+    }
+  ],
+  "use_cases": [
+    {
+      "id": "UC-001",
+      "actor": "初めて realtime-draw を見るユーザー",
+      "goal": "サービスが「書いた言葉を図として育てる」ものであることを、ヒーローキャンバスから直感的に理解する。",
+      "trigger": "ヒーロー表示またはデモ用ワークスペースを開く。",
+      "main_flow": [
+        "ユーザーがページを開く。",
+        "紙質感のあるキャンバス上に、企画メモ、利用者の声、次の一手、優先度、資料カード群が表示される。",
+        "カード同士が青い手書き風の線で接続され、考えが整理されていく印象を受ける。",
+        "下部入力欄から自分も書き始められることが分かる。"
+      ],
+      "success_criteria": [
+        "画像を知らないユーザーでも、キャンバスが思考整理ツールであると理解できる。",
+        "主要ノードと接続線が初期表示で見切れず、UI オーバーレイに隠れない。"
+      ],
+      "screens": ["SCR-001"],
+      "tests": ["T-001", "T-004", "T-006"]
+    },
+    {
+      "id": "UC-002",
+      "actor": "既存ユーザー",
+      "goal": "通常の入力、ノードドラッグ、ピン保存、履歴表示を今まで通り使える。",
+      "trigger": "ヒーロー向けの見た目変更後に通常キャンバスを使う。",
+      "main_flow": [
+        "ユーザーが既存ワークスペースを開く。",
+        "既存 scene のカード、付箋、リスト、テーブル、グループが表示される。",
+        "ユーザーがノードをドラッグし、位置が保存される。",
+        "ユーザーが入力欄から新しい内容を送信する。"
+      ],
+      "success_criteria": [
+        "ヒーロー用スタイルが通常利用画面の可読性や操作性を壊さない。",
+        "既存のデータ構造と API 互換性を保つ。"
+      ],
+      "screens": ["SCR-002"],
+      "tests": ["T-002", "T-003", "T-007"]
+    },
+    {
+      "id": "UC-003",
+      "actor": "実装者またはレビュアー",
+      "goal": "参照画像と実キャンバスの対応関係を確認し、何が改修・修正・追加されたかを判断する。",
+      "trigger": "実装レビューまたはリリース前確認を行う。",
+      "main_flow": [
+        "レビュアーが参照画像とヒーローキャンバスを並べて見る。",
+        "主要要素がノード/エッジとして再現されているかを確認する。",
+        "通常キャンバスへの副作用がないかを確認する。"
+      ],
+      "success_criteria": [
+        "改修箇所、修正箇所、追加箇所が実装差分として追跡できる。",
+        "視覚再現と既存機能維持の両方を確認できる。"
+      ],
+      "screens": ["SCR-001", "SCR-002"],
+      "tests": ["T-005", "T-008"]
+    }
+  ],
+  "screens": [
+    {
+      "id": "SCR-001",
+      "name": "ヒーローキャンバス",
+      "route": "/",
+      "purpose": "参照画像の世界観を既存キャンバス上の実ノードとエッジで表現し、サービス価値を初見で伝える。",
+      "users": ["初めて realtime-draw を見るユーザー", "レビュアー"],
+      "states": [
+        "初期表示",
+        "データ読み込み中",
+        "ヒーローサンプル表示済み",
+        "モバイル表示"
+      ],
+      "data": ["ENT-001", "ENT-002", "ENT-003", "ENT-004"],
+      "actions": [
+        "キャンバスをパン/ズームする",
+        "ノードを視認する",
+        "入力欄から書き始める",
+        "必要に応じて通常ワークスペースへ切り替える"
+      ],
+      "acceptance": [
+        "企画メモ、利用者の声、次の一手、優先度、資料カード群が初期表示で認識できる。",
+        "青い手書き風の線で主要ノードの関係が追える。",
+        "WorkspaceBar、HistoryPanel、StatusBadge、InputBar が主要ノードを不自然に隠さない。"
+      ]
+    },
+    {
+      "id": "SCR-002",
+      "name": "通常キャンバス",
+      "route": "/",
+      "purpose": "既存のリアルタイム描画・整理画面として、ヒーロー改修後も通常利用を継続できる。",
+      "users": ["既存ユーザー"],
+      "states": [
+        "既存 scene 表示",
+        "空状態",
+        "入力送信中",
+        "履歴パネル開閉",
+        "ワークスペース切り替え"
+      ],
+      "data": ["ENT-002", "ENT-003", "ENT-005"],
+      "actions": [
+        "テキストを入力する",
+        "整理モードを選ぶ",
+        "ノードをドラッグする",
+        "履歴を開閉する",
+        "ワークスペースを切り替える"
+      ],
+      "acceptance": [
+        "ヒーロー用テーマが通常キャンバスへ意図せず漏れない。",
+        "既存ノード種別の表示とドラッグ操作が維持される。",
+        "入力送信、履歴、ワークスペース切り替えが動作する。"
+      ]
+    },
+    {
+      "id": "SCR-003",
+      "name": "要件レビュー HTML",
+      "route": "docs/requirements/hero-canvas-image/requirements-map.html",
+      "purpose": "改修箇所、修正箇所、追加箇所、OK/NG条件、未決事項を一覧で確認する。",
+      "users": ["実装者", "レビュアー", "意思決定者"],
+      "states": ["生成済み", "レビュー中"],
+      "data": ["ENT-006"],
+      "actions": ["要件を確認する", "未決事項を回答する", "次フェーズへ進めるか判断する"],
+      "acceptance": [
+        "requirements-map.json から再生成できる。",
+        "未決事項と NG 条件が一覧で確認できる。"
+      ]
+    }
+  ],
+  "data_model": {
+    "entities": [
+      {
+        "id": "ENT-001",
+        "name": "HeroSceneDefinition",
+        "purpose": "ヒーロー表示専用またはデモ用の初期シーン定義。",
+        "primary_key": "id",
+        "fields": [
+          {
+            "name": "id",
+            "type": "string",
+            "required": true,
+            "notes": "例: hero-option-2"
+          },
+          {
+            "name": "title",
+            "type": "string",
+            "required": true,
+            "notes": "ヒーローキャンバスの表示タイトル。"
+          },
+          {
+            "name": "items",
+            "type": "SceneItem[]",
+            "required": true,
+            "notes": "企画メモ、付箋、リスト、テーブル、資料カード群。"
+          },
+          {
+            "name": "edges",
+            "type": "SceneEdge[]",
+            "required": true,
+            "notes": "主要ノード間の接続線。"
+          },
+          {
+            "name": "sourceImage",
+            "type": "string",
+            "required": false,
+            "notes": "参照元画像パス。仕様正本ではなくレビュー補助。"
+          }
+        ],
+        "relations": [
+          {
+            "target": "ENT-002",
+            "type": "1:N",
+            "via": "items",
+            "notes": "ヒーローシーンは複数ノードを持つ。"
+          },
+          {
+            "target": "ENT-003",
+            "type": "1:N",
+            "via": "edges",
+            "notes": "ヒーローシーンは複数エッジを持つ。"
+          }
+        ],
+        "state_policy": "静的サンプルとして扱う。専用ワークスペース化する場合も既存 scene schema と互換にする。",
+        "delete_policy": "通常ユーザー入力データとは分離し、削除しても既存ワークスペースを壊さない。"
+      },
+      {
+        "id": "ENT-002",
+        "name": "SceneItem",
+        "purpose": "カード、付箋、リスト、テーブル、グループなど既存キャンバス上のノード。",
+        "primary_key": "id",
+        "fields": [
+          {
+            "name": "id",
+            "type": "string",
+            "required": true,
+            "notes": "既存 scene item ID。"
+          },
+          {
+            "name": "type",
+            "type": "card|note|list|table|group",
+            "required": true,
+            "notes": "既存ノード種別。"
+          },
+          {
+            "name": "title",
+            "type": "string",
+            "required": false,
+            "notes": "カード、リスト、テーブル、グループの見出し。"
+          },
+          {
+            "name": "body|text|items|columns|rows",
+            "type": "variant",
+            "required": false,
+            "notes": "ノード種別ごとの本文データ。"
+          },
+          {
+            "name": "groupId",
+            "type": "string",
+            "required": false,
+            "notes": "既存グループ所属。"
+          }
+        ],
+        "relations": [
+          {
+            "target": "ENT-002",
+            "type": "N:1",
+            "via": "groupId",
+            "notes": "グループノードに所属できる。"
+          }
+        ],
+        "state_policy": "既存 scene/pins の状態ライフサイクルを維持する。",
+        "delete_policy": "既存削除方針に従う。ヒーローサンプルは通常ユーザーデータと混同しない。"
+      },
+      {
+        "id": "ENT-003",
+        "name": "SceneEdge",
+        "purpose": "ノード間の関係を示す接続線。",
+        "primary_key": "id",
+        "fields": [
+          {
+            "name": "id",
+            "type": "string",
+            "required": true,
+            "notes": "既存 edge ID。"
+          },
+          {
+            "name": "source",
+            "type": "string",
+            "required": true,
+            "notes": "接続元 SceneItem ID。"
+          },
+          {
+            "name": "target",
+            "type": "string",
+            "required": true,
+            "notes": "接続先 SceneItem ID。"
+          },
+          {
+            "name": "label",
+            "type": "string",
+            "required": false,
+            "notes": "必要に応じた関係ラベル。"
+          },
+          {
+            "name": "styleIntent",
+            "type": "string",
+            "required": false,
+            "notes": "ヒーロー用 custom edge の見た目意図。"
+          }
+        ],
+        "relations": [
+          {
+            "target": "ENT-002",
+            "type": "N:1",
+            "via": "source",
+            "notes": "接続元ノード。"
+          },
+          {
+            "target": "ENT-002",
+            "type": "N:1",
+            "via": "target",
+            "notes": "接続先ノード。"
+          }
+        ],
+        "state_policy": "既存 edge schema と互換にし、表示時の style は変換層で付与する。",
+        "delete_policy": "source/target が消えた edge は既存 validate 方針に従って無効化する。"
+      },
+      {
+        "id": "ENT-004",
+        "name": "HeroVisualTheme",
+        "purpose": "紙背景、手書き風線、付箋、青罫線など、ヒーロー表示用の視覚テーマ。",
+        "primary_key": "themeName",
+        "fields": [
+          {
+            "name": "themeName",
+            "type": "string",
+            "required": true,
+            "notes": "例: hero-handdrawn"
+          },
+          {
+            "name": "cssClass",
+            "type": "string",
+            "required": true,
+            "notes": "例: hero-canvas"
+          },
+          {
+            "name": "tokens",
+            "type": "CSS variables",
+            "required": false,
+            "notes": "色、影、線幅、背景など。"
+          }
+        ],
+        "relations": [],
+        "state_policy": "UI 表示状態として適用する。永続化が必要かは未決事項。",
+        "delete_policy": "通常テーマへ戻せるよう、既存 CSS へ不可逆に混ぜない。"
+      },
+      {
+        "id": "ENT-005",
+        "name": "PinsAndWorkspaceState",
+        "purpose": "既存のワークスペース、履歴、ピン座標など通常キャンバスの状態。",
+        "primary_key": "workspaceId",
+        "fields": [
+          {
+            "name": "workspaceId",
+            "type": "string",
+            "required": true,
+            "notes": "既存ワークスペース ID。"
+          },
+          {
+            "name": "pins",
+            "type": "Pins",
+            "required": false,
+            "notes": "ノード固定座標。"
+          },
+          {
+            "name": "history",
+            "type": "HistoryBatch[]",
+            "required": false,
+            "notes": "既存処理履歴。"
+          }
+        ],
+        "relations": [
+          {
+            "target": "ENT-002",
+            "type": "1:N",
+            "via": "pins",
+            "notes": "ワークスペース内ノードの位置を保持する。"
+          }
+        ],
+        "state_policy": "既存の localStorage と API 連携を維持する。",
+        "delete_policy": "ヒーロー改修で既存 pins/history を削除しない。"
+      },
+      {
+        "id": "ENT-006",
+        "name": "RequirementsArtifact",
+        "purpose": "要件レビュー用の入力正本、構造化 JSON、HTML、検査結果。",
+        "primary_key": "path",
+        "fields": [
+          {
+            "name": "requirements-input.md",
+            "type": "markdown",
+            "required": true,
+            "notes": "ユーザー原文と確定事項。"
+          },
+          {
+            "name": "requirements-map.json",
+            "type": "json",
+            "required": true,
+            "notes": "構造化レビュー成果物。"
+          },
+          {
+            "name": "requirements-map.html",
+            "type": "html",
+            "required": true,
+            "notes": "レビュー用ビュー。"
+          },
+          {
+            "name": "requirements-validation.md",
+            "type": "markdown",
+            "required": true,
+            "notes": "validator 結果。"
+          }
+        ],
+        "relations": [],
+        "state_policy": "requirements-map.json を正本として HTML を再生成可能にする。",
+        "delete_policy": "要件変更時は JSON を更新して HTML/validation を再生成する。"
+      }
+    ]
+  },
+  "distribution": [
+    {
+      "id": "DIST-001",
+      "channel": "アプリ内初期表示またはデモ用ワークスペース",
+      "audience": "初めて realtime-draw を試すユーザー、サービス説明を見る関係者",
+      "entry_point": "既存アプリのルート画面、またはヒーロー用ワークスペースへの導線",
+      "activation_flow": [
+        "ユーザーがアプリを開く。",
+        "ヒーローキャンバスでサービスの世界観を見る。",
+        "入力欄に自分の言葉を書き始める。",
+        "AI 整理後のキャンバス変化を体験する。"
+      ],
+      "success_metric": "初回表示で主要要素が見え、ユーザーが入力欄に到達できること。定量指標は未決。",
+      "risks": [
+        "ヒーローが通常利用画面と混同され、編集対象データだと誤解される。",
+        "デモ要素が多すぎて入力開始までの導線が弱くなる。"
+      ],
+      "owner": "Product/Frontend"
+    }
+  ],
+  "ux": [
+    {
+      "id": "UX-001",
+      "journey": "初回ユーザーがヒーローキャンバスを見て価値を理解し、入力を始める。",
+      "user_state": "サービスの用途をまだ知らない。画像の説明文を読まなくても視覚的に理解したい。",
+      "principles": [
+        "手書きの温かみを持たせる。",
+        "実キャンバスのオブジェクトとして表示する。",
+        "装飾より可読性を優先する。",
+        "入力欄への導線を残す。"
+      ],
+      "frictions": [
+        "紙質感や影が強すぎると文字が読みづらくなる。",
+        "オーバーレイがキャンバスの主役を隠す。",
+        "ヒーロー用デモとユーザーの実データの区別が曖昧になる。"
+      ],
+      "accessibility": [
+        "カード内テキストのコントラストを十分に保つ。",
+        "モバイルでも文字が潰れない。",
+        "色だけでノード種別や状態を判断させない。"
+      ],
+      "empty_states": [
+        "ヒーローサンプルが表示できない場合は、既存の空状態メッセージに戻れる。",
+        "通常ワークスペースが空の場合は、ヒーローサンプルと混同しない説明を出す。"
+      ],
+      "error_states": [
+        "サンプルシーン読み込みに失敗しても入力欄と通常キャンバスは使える。",
+        "参照画像アセットが欠落してもアプリ本体は壊れない。"
+      ],
+      "acceptance": [
+        "ユーザーが 5 秒以内に、言葉がカードや表として整理されるサービスだと理解できる。",
+        "入力欄が常に発見可能で、主要ノードと重ならない。"
+      ]
+    },
+    {
+      "id": "UX-002",
+      "journey": "既存ユーザーが通常キャンバスを使い続ける。",
+      "user_state": "既に scene、ワークスペース、履歴、ピン座標を使っている。",
+      "principles": [
+        "ヒーロー用表現は通常利用の邪魔をしない。",
+        "既存操作の位置と意味を変えない。",
+        "データ互換性を保つ。"
+      ],
+      "frictions": [
+        "テーマの適用範囲が広すぎると、通常業務データの可読性が落ちる。",
+        "線の装飾が強すぎると接続関係が追いづらい。"
+      ],
+      "accessibility": [
+        "通常ノードのテキストサイズとコントラストを維持する。",
+        "フォーカス可能要素の操作性を壊さない。"
+      ],
+      "empty_states": [
+        "既存の空状態説明を維持する。"
+      ],
+      "error_states": [
+        "API エラー時の StatusBadge 表示を維持する。"
+      ],
+      "acceptance": [
+        "既存の主要操作が改修前と同じ手順で完了する。"
+      ]
+    },
+    {
+      "id": "UX-003",
+      "journey": "レビュアーが改修範囲を確認する。",
+      "user_state": "どこが改修、修正、追加なのかを短時間で把握したい。",
+      "principles": [
+        "要件成果物に改修箇所、修正箇所、追加箇所を明示する。",
+        "未決事項と NG 条件を隠さない。"
+      ],
+      "frictions": [
+        "ビジュアル要件が文章だけだと認識合わせしづらい。",
+        "参照画像と実装対象の対応関係が曖昧になりやすい。"
+      ],
+      "accessibility": [
+        "HTML レビューはテーブルで一覧できる。",
+        "参照画像は補助資料であり、正本は文章と JSON とする。"
+      ],
+      "empty_states": [
+        "未決事項がなければ未決事項なしと明記する。"
+      ],
+      "error_states": [
+        "validator が failed の場合、次フェーズへ進めない。"
+      ],
+      "acceptance": [
+        "レビュー時に OK 条件と NG 条件を具体的に確認できる。"
+      ]
+    }
+  ],
+  "tests": [
+    {
+      "id": "T-001",
+      "level": "manual",
+      "target": "ヒーローキャンバス初期表示",
+      "scenario": "デスクトップ幅でヒーローキャンバスを開く。",
+      "steps": [
+        "開発サーバーを起動する。",
+        "ヒーロー表示またはデモ用ワークスペースを開く。",
+        "主要ノード、接続線、入力欄、上部 UI を目視確認する。"
+      ],
+      "expected": "企画メモ、利用者の声、次の一手、優先度、資料カード群が視認でき、入力欄や履歴パネルに不自然に隠れない。",
+      "covers": ["UC-001", "SCR-001", "UX-001", "OK-001", "OK-002"],
+      "negative": false
+    },
+    {
+      "id": "T-002",
+      "level": "integration",
+      "target": "既存キャンバス操作",
+      "scenario": "通常ワークスペースでノードドラッグとピン保存を行う。",
+      "steps": [
+        "既存ワークスペースを開く。",
+        "任意のノードをドラッグする。",
+        "画面を再読み込みする。"
+      ],
+      "expected": "ドラッグ後の位置が保持され、ヒーロー用スタイルが通常操作を妨げない。",
+      "covers": ["UC-002", "SCR-002", "ENT-005", "UX-002", "OK-004"],
+      "negative": false
+    },
+    {
+      "id": "T-003",
+      "level": "integration",
+      "target": "入力送信",
+      "scenario": "通常キャンバスで入力欄からテキストを送信する。",
+      "steps": [
+        "通常ワークスペースを開く。",
+        "入力欄へテキストを入力する。",
+        "送信する。"
+      ],
+      "expected": "既存 API に入力が送信され、pending/status 表示が従来通り動く。",
+      "covers": ["UC-002", "SCR-002", "UX-002", "OK-004"],
+      "negative": false
+    },
+    {
+      "id": "T-004",
+      "level": "manual",
+      "target": "モバイル表示",
+      "scenario": "モバイル幅でヒーローキャンバスを開く。",
+      "steps": [
+        "幅 390px 程度の viewport で表示する。",
+        "主要ノードと入力欄の重なりを確認する。",
+        "パン/ズームで主要要素へ到達できるか確認する。"
+      ],
+      "expected": "横長構図でも主要ノードが読め、入力欄や上部バーが不自然に覆わない。",
+      "covers": ["UC-001", "SCR-001", "UX-001", "OK-003", "NG-003"],
+      "negative": false
+    },
+    {
+      "id": "T-005",
+      "level": "manual",
+      "target": "参照画像との対応確認",
+      "scenario": "参照画像と実キャンバスを比較する。",
+      "steps": [
+        "docs/requirements/hero-canvas-image/assets/option-2.png を開く。",
+        "実装後のヒーローキャンバスを開く。",
+        "主要要素の対応関係を確認する。"
+      ],
+      "expected": "雰囲気と主要要素が再現されているが、画像を単に背景へ貼っただけではない。",
+      "covers": ["UC-003", "SCR-001", "UX-003", "OK-001", "NG-001"],
+      "negative": false
+    },
+    {
+      "id": "T-006",
+      "level": "manual",
+      "target": "custom edge 視認性",
+      "scenario": "ヒーロー表示の接続線を確認する。",
+      "steps": [
+        "ヒーローキャンバスを開く。",
+        "各ノード間の青い線、端点、矢印または丸端点を確認する。"
+      ],
+      "expected": "手書き風でありながら、接続元と接続先が追える。",
+      "covers": ["UC-001", "SCR-001", "ENT-003", "UX-001", "OK-002", "NG-004"],
+      "negative": false
+    },
+    {
+      "id": "T-007",
+      "level": "unit",
+      "target": "Scene to Flow 変換",
+      "scenario": "ヒーロー用サンプル scene を既存 toFlow 変換へ通す。",
+      "steps": [
+        "ヒーロー用 scene fixture を用意する。",
+        "toFlow(scene, pins) を実行する。",
+        "ノード種別、親子関係、edge が期待通り生成されることを確認する。"
+      ],
+      "expected": "既存 schema と互換の nodes/edges が生成される。",
+      "covers": ["UC-002", "SCR-002", "ENT-001", "ENT-002", "ENT-003", "OK-004"],
+      "negative": false
+    },
+    {
+      "id": "T-008",
+      "level": "manual",
+      "target": "要件レビュー成果物",
+      "scenario": "要件定義の HTML と validation を確認する。",
+      "steps": [
+        "requirements-map.html を開く。",
+        "requirements-validation.md を確認する。",
+        "未決事項と NG 条件を確認する。"
+      ],
+      "expected": "validator が passed で、改修箇所、修正箇所、追加箇所の判断材料が揃っている。",
+      "covers": ["UC-003", "SCR-003", "ENT-006", "UX-003", "OK-006"],
+      "negative": false
+    },
+    {
+      "id": "T-009",
+      "level": "manual",
+      "target": "背景貼り付けのみの禁止確認",
+      "scenario": "実装が参照画像の背景貼り付けだけになっていないか確認する。",
+      "steps": [
+        "DOM または React Flow devtools でノードが存在することを確認する。",
+        "画像アセットが主表示として全面に貼られていないことを確認する。"
+      ],
+      "expected": "主要要素が React Flow ノード/エッジとして存在し、参照画像はレビュー補助に留まる。",
+      "covers": ["UC-003", "SCR-001", "ENT-002", "ENT-003", "NG-001"],
+      "negative": true
+    }
+  ],
+  "checklists": {
+    "done": [
+      {
+        "id": "OK-001",
+        "item": "参照画像の主要要素がキャンバス上のノードとして再現されている。",
+        "evidence": "デスクトップスクリーンショット、React Flow nodes の確認。",
+        "owner": "Frontend",
+        "status": "todo"
+      },
+      {
+        "id": "OK-002",
+        "item": "青い手書き風の接続線で、主要ノード同士の関係が追える。",
+        "evidence": "custom edge の表示確認、スクリーンショット。",
+        "owner": "Frontend",
+        "status": "todo"
+      },
+      {
+        "id": "OK-003",
+        "item": "モバイルでも主要ノードと入力欄が破綻せず表示される。",
+        "evidence": "390px 幅程度のスクリーンショット。",
+        "owner": "Frontend",
+        "status": "todo"
+      },
+      {
+        "id": "OK-004",
+        "item": "既存の通常キャンバス操作、入力送信、ピン保存、履歴表示を壊していない。",
+        "evidence": "既存テスト、手動操作確認。",
+        "owner": "Frontend",
+        "status": "todo"
+      },
+      {
+        "id": "OK-005",
+        "item": "ヒーロー用テーマの適用範囲が明示され、通常画面へ意図せず漏れない。",
+        "evidence": "CSS class または表示状態の確認。",
+        "owner": "Frontend",
+        "status": "todo"
+      },
+      {
+        "id": "OK-006",
+        "item": "要件定義成果物が validator を通り、HTML レビューできる。",
+        "evidence": "requirements-validation.md と requirements-map.html。",
+        "owner": "Codex",
+        "status": "done"
+      }
+    ],
+    "guardrails": [
+      {
+        "id": "NG-001",
+        "risk": "参照画像を背景として貼るだけの実装になる。",
+        "must_not_happen": "主要要素が React Flow ノード/エッジとして存在しない。",
+        "detection": "DOM/React Flow nodes の確認、画像アセットの使用箇所確認。",
+        "mitigation": "HeroSceneDefinition を既存 scene schema と互換にし、ノード/エッジとして表示する。",
+        "severity": "high"
+      },
+      {
+        "id": "NG-002",
+        "risk": "通常キャンバスへの副作用。",
+        "must_not_happen": "ヒーロー用テーマが通常ユーザーデータの可読性や操作性を悪化させる。",
+        "detection": "通常ワークスペースでの手動操作確認、既存テスト。",
+        "mitigation": "hero-canvas class などで適用範囲を分離する。",
+        "severity": "high"
+      },
+      {
+        "id": "NG-003",
+        "risk": "UI オーバーレイの重なり。",
+        "must_not_happen": "WorkspaceBar、HistoryPanel、InputBar などが主要ノードを隠し、価値が伝わらない。",
+        "detection": "デスクトップ/モバイルのスクリーンショット確認。",
+        "mitigation": "ヒーロー表示ではパネル初期状態、fitView padding、配置を調整する。",
+        "severity": "medium"
+      },
+      {
+        "id": "NG-004",
+        "risk": "手書き風装飾による可読性低下。",
+        "must_not_happen": "線や紙質感が強すぎて、ノード本文や接続関係が読めない。",
+        "detection": "目視レビュー、コントラスト確認。",
+        "mitigation": "装飾は CSS 変数で抑制可能にし、文字と線のコントラストを優先する。",
+        "severity": "medium"
+      }
+    ]
+  },
+  "open_questions": [
+    {
+      "id": "Q-001",
+      "question": "ヒーローキャンバスは既存ルートの初期表示に組み込むか、デモ用ワークスペース/専用モードとして分離するか。",
+      "impact": "実装範囲、通常画面への副作用、Distribution が変わる。",
+      "owner": "Product",
+      "status": "open"
+    },
+    {
+      "id": "Q-002",
+      "question": "ヒーローサンプルはユーザーが編集可能な通常 scene として扱うか、読み取り専用に近いサンプルとして扱うか。",
+      "impact": "保存、ピン、履歴、ワークスペース管理の扱いが変わる。",
+      "owner": "Product/Frontend",
+      "status": "open"
+    },
+    {
+      "id": "Q-003",
+      "question": "手書き風テーマを通常キャンバスにも適用するか、ヒーロー表示のみに限定するか。",
+      "impact": "CSS 設計、テスト範囲、既存ユーザー体験が変わる。",
+      "owner": "Product/Design",
+      "status": "open"
+    },
+    {
+      "id": "Q-004",
+      "question": "破れた紙の輪郭や紙質感を CSS のみで実装するか、軽量なテクスチャ/背景画像を追加するか。",
+      "impact": "実装難度、パフォーマンス、アセット管理が変わる。",
+      "owner": "Frontend/Design",
+      "status": "open"
+    },
+    {
+      "id": "Q-005",
+      "question": "成功指標を定量化するか。例: 初回入力率、ヒーロー表示後の入力完了率など。",
+      "impact": "計測実装の要否と Distribution 評価が変わる。",
+      "owner": "Product",
+      "status": "deferred"
+    }
+  ],
+  "decision_log": [
+    {
+      "id": "DEC-001",
+      "decision": "参照画像の完全コピーではなく、キャンバス上の実ノード/エッジとして主要要素と雰囲気を再現する。",
+      "reason": "サービスの価値は静止画ではなく、書いた内容が図として育つ体験にあるため。",
+      "source": "docs/requirements/hero-canvas-image/requirements-input.md",
+      "date": "2026-07-10"
+    },
+    {
+      "id": "DEC-002",
+      "decision": "既存の React Flow 構造とノード種別を活かして改修する。",
+      "reason": "既存実装がカード、付箋、リスト、テーブル、グループ、接続線を既に表現できるため、全面作り直しより副作用が少ない。",
+      "source": "src/App.tsx, src/flow/nodes",
+      "date": "2026-07-10"
+    },
+    {
+      "id": "DEC-003",
+      "decision": "要件定義段階では未決事項を open_questions に残し、実装へは進まない。",
+      "reason": "ヒーローの配置先、編集可否、テーマ適用範囲は後戻りが大きいため。",
+      "source": "docs/requirements/hero-canvas-image/requirements-input.md",
+      "date": "2026-07-10"
+    }
+  ],
+  "rejected_options": [
+    {
+      "id": "REJ-001",
+      "option": "data/option-2.png をそのままキャンバス背景として表示する。",
+      "reason": "見た目は近くなるが、サービスの実キャンバス体験を示せず、ノード操作や接続関係の価値が伝わらない。",
+      "impact": "初期実装から除外する。参照画像はレビュー補助としてのみ扱う。"
+    },
+    {
+      "id": "REJ-002",
+      "option": "Canvas API または SVG でヒーローを全面的に手描き実装する。",
+      "reason": "既存 React Flow のノード/エッジ構造と重複し、通常機能との一貫性が落ちる。",
+      "impact": "初期実装では既存ノード/エッジを拡張する。"
+    },
+    {
+      "id": "REJ-003",
+      "option": "ヒーロー改修と同時に認証、料金、ログイン、LP ナビゲーションまで実装する。",
+      "reason": "今回の目的はヒーローイメージのキャンバス再現であり、プロダクト機能の拡張とは別スコープ。",
+      "impact": "ナビゲーション実装は除外する。"
+    }
+  ],
+  "diagrams": [
+    {
+      "id": "DIA-001",
+      "title": "ヒーローキャンバスの構造",
+      "type": "mermaid",
+      "source": "graph TD\n  A[HeroSceneDefinition] --> B[企画メモ CardNode]\n  A --> C[利用者の声 NoteNode]\n  A --> D[次の一手 ListNode]\n  A --> E[優先度 TableNode]\n  A --> F[資料カード GroupNode]\n  B -. 青い手書き風 edge .-> C\n  B -. 青い手書き風 edge .-> D\n  D -. 青い手書き風 edge .-> E\n  E -. 青い手書き風 edge .-> F"
+    }
+  ],
+  "visuals": [
+    {
+      "id": "VIS-001",
+      "type": "screenshot",
+      "path": "docs/requirements/hero-canvas-image/assets/option-2.png",
+      "purpose": "ヒーローキャンバス再現の参照画像。仕様正本ではなく、雰囲気と主要要素の補助資料として扱う。",
+      "source": "data/option-2.png",
+      "is_normative": false
+    }
+  ]
+}

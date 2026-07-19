@@ -1,0 +1,9 @@
+node_modules/
+dist/
+*.log
+.DS_Store
+
+# Runtime state belongs to the local user, never to the OSS repository.
+# Keep only the portable example scene under data/.
+data/*
+!data/scene.sample.json
