@@ -1,0 +1,5 @@
+node_modules/
+out/*
+!out/maplogue-prompt-to-map.mp4
+!out/maplogue-prompt-to-map-preview.png
+.DS_Store

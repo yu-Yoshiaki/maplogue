@@ -1,62 +1,101 @@
 {
   "version": 1,
-  "title": "サンプルシーン",
-  "updatedAt": "2026-07-09T00:00:00.000Z",
+  "title": "AWS Web アプリケーション構成",
+  "updatedAt": "2026-07-19T00:00:00.000Z",
   "items": [
     {
       "id": "card_001",
       "type": "card",
-      "title": "概要",
-      "body": "雑多なテキストを図として整理するデモです。"
-    },
-    {
-      "id": "note_001",
-      "type": "note",
-      "text": "期限を確認してください。リスクがある場合は早めに共有しましょう。",
-      "tone": "warning"
-    },
-    {
-      "id": "list_001",
-      "type": "list",
-      "title": "買い物リスト",
-      "items": ["牛乳", "卵", "パン"]
-    },
-    {
-      "id": "table_001",
-      "type": "table",
-      "title": "プラン比較",
-      "columns": ["項目", "A案", "B案"],
-      "rows": [
-        ["コスト", "低", "高"],
-        ["期間", "短", "長"]
-      ]
+      "title": "インターネット利用者",
+      "body": "ブラウザから HTTPS で Web アプリケーションへアクセスします。"
     },
     {
       "id": "group_001",
       "type": "group",
-      "title": "関連トピック"
+      "title": "ネットワーク / 配信"
     },
     {
       "id": "card_002",
       "type": "card",
       "groupId": "group_001",
-      "title": "トピック A",
-      "body": "グループ内の説明カードです。"
+      "title": "Amazon CloudFront",
+      "body": "エッジでコンテンツをキャッシュし、オリジンへのアクセスを配信します。"
     },
     {
       "id": "card_003",
       "type": "card",
       "groupId": "group_001",
-      "title": "トピック B",
-      "body": "同じグループに属する2つ目のカードです。"
+      "title": "Application Load Balancer (ALB)",
+      "body": "受信した HTTPS リクエストを正常なアプリケーションタスクへ振り分けます。"
+    },
+    {
+      "id": "group_002",
+      "type": "group",
+      "title": "アプリケーション"
+    },
+    {
+      "id": "card_004",
+      "type": "card",
+      "groupId": "group_002",
+      "title": "Amazon ECS / AWS Fargate",
+      "body": "コンテナ化した Web アプリケーションを実行し、API と画面を提供します。"
+    },
+    {
+      "id": "group_003",
+      "type": "group",
+      "title": "データストア"
+    },
+    {
+      "id": "card_005",
+      "type": "card",
+      "groupId": "group_003",
+      "title": "Amazon RDS",
+      "body": "アプリケーションのトランザクションデータを管理します。"
+    },
+    {
+      "id": "card_006",
+      "type": "card",
+      "groupId": "group_003",
+      "title": "Amazon S3",
+      "body": "画像・添付ファイル・静的アセットをオブジェクトとして保存します。"
     }
   ],
   "edges": [
     {
       "id": "edge_001",
       "source": "card_001",
-      "target": "list_001",
-      "label": "関連"
+      "target": "card_002",
+      "label": "HTTPS リクエスト"
+    },
+    {
+      "id": "edge_002",
+      "source": "card_002",
+      "target": "card_003",
+      "label": "動的リクエストを転送"
+    },
+    {
+      "id": "edge_003",
+      "source": "card_003",
+      "target": "card_004",
+      "label": "ターゲットへ負荷分散"
+    },
+    {
+      "id": "edge_004",
+      "source": "card_004",
+      "target": "card_005",
+      "label": "SQL 読み書き"
+    },
+    {
+      "id": "edge_005",
+      "source": "card_004",
+      "target": "card_006",
+      "label": "オブジェクトを保存・取得"
+    },
+    {
+      "id": "edge_006",
+      "source": "card_002",
+      "target": "card_006",
+      "label": "静的アセットのオリジン"
     }
   ]
 }

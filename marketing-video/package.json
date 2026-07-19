@@ -1,0 +1,23 @@
+{
+  "name": "maplogue-marketing-video",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "preview": "remotion studio src/index.ts",
+    "render": "npm run render:raw && ffmpeg -y -i out/maplogue-prompt-to-map.raw.mp4 -c:v copy -an out/maplogue-prompt-to-map.mp4 && rm out/maplogue-prompt-to-map.raw.mp4",
+    "render:raw": "remotion render src/index.ts MaploguePromptToMap out/maplogue-prompt-to-map.raw.mp4 --codec=h264",
+    "render:preview": "remotion still src/index.ts MaploguePromptToMap out/maplogue-prompt-to-map-preview.png --frame=410"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.408",
+    "remotion": "^4.0.408",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "typescript": "^5.7.3"
+  }
+}
