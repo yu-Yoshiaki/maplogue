@@ -73,6 +73,33 @@ export interface PinPosition {
 /** data/pins.json（サーバー専有）。旧形式 {x,y} は読み取り時に parentId:null へ normalize する */
 export type Pins = Record<string, PinPosition>;
 
+/**
+ * 監視デーモンが data/scene-watch-status.json に atomic 書き込みする runtime status。
+ * Git 管理対象外（data/*）。
+ */
+export interface SceneWatchRuntimeStatus {
+  /** ISO8601。デーモンの生存心拍 */
+  heartbeatAt: string;
+  /** 直近バッチの開始時刻。未開始なら null */
+  batchStartedAt: string | null;
+  /** 直近バッチの成功時刻。未成功なら null */
+  batchSucceededAt: string | null;
+  /** 直近バッチの失敗時刻。未失敗なら null */
+  batchFailedAt: string | null;
+  /** 直近/進行中バッチの対象ワークスペース id（default を含む） */
+  workspaceIds: string[];
+}
+
+/** 選択中ワークスペース向けに投影した worker status（GET /api/scene） */
+export interface SceneWorkerStatus {
+  heartbeatAt: string;
+  batchStartedAt: string | null;
+  batchSucceededAt: string | null;
+  batchFailedAt: string | null;
+  /** 選択中ワークスペースが直近/進行中バッチの対象に含まれるか */
+  includesWorkspace: boolean;
+}
+
 /** GET /api/scene のレスポンス */
 export interface SceneResponse {
   scene: Scene;
@@ -81,6 +108,11 @@ export interface SceneResponse {
   pendingInputs: number;
   /** scene.json がパース/検証に失敗し、最後の正常値を返しているとき true */
   stale?: boolean;
+  /**
+   * 監視デーモンの runtime status。未起動・ファイル無し・壊れているときは null。
+   * 壊れた status を正常に見せるフォールバックはしない。
+   */
+  workerStatus: SceneWorkerStatus | null;
 }
 
 export interface WorkspaceSummary {
