@@ -6,9 +6,9 @@
 
 ## 操作デモ
 
-![Maplogue のプロンプトからマップを生成する操作デモ](marketing-video/out/maplogue-prompt-to-map.mp4)
+![Maplogue のプロンプトからマップを生成する操作デモ](marketing-video/out/maplogue-prompt-to-map.gif)
 
-動画を再生できない場合は、[MP4 を開く](marketing-video/out/maplogue-prompt-to-map.mp4) からご覧ください。
+高画質版は、[MP4 を開く](marketing-video/out/maplogue-prompt-to-map.mp4) からご覧ください。
 
 ## アーキテクチャ
 
