@@ -11,7 +11,8 @@ import { useEdgesState, useNodesState, type Edge, type Node } from "@xyflow/reac
 import { useCallback, useEffect, useState } from "react";
 import { fetchScene } from "../api/client";
 import { toFlow } from "../flow/toFlow";
-import type { Pins, Scene } from "../types/scene";
+import { SUCCESS_VISIBLE_MS } from "../reflection/resolveReflectionPhase";
+import type { Pins, Scene, SceneWorkerStatus } from "../types/scene";
 
 export interface SceneStatus {
   pending: number;
@@ -20,6 +21,13 @@ export interface SceneStatus {
   sceneTitle: string;
   isEmpty: boolean;
   loaded: boolean;
+  workerStatus: SceneWorkerStatus | null;
+  /** 送信成功直後で API の pending がまだ 0 のとき true */
+  justSubmitted: boolean;
+  /** 直近の送信成功時刻（epoch ms）。無いとき null */
+  submittedAtMs: number | null;
+  /** 反映済み表示の期限（epoch ms）。無いとき null */
+  successVisibleUntilMs: number | null;
 }
 
 const INITIAL_STATUS: SceneStatus = {
@@ -29,6 +37,10 @@ const INITIAL_STATUS: SceneStatus = {
   sceneTitle: "",
   isEmpty: true,
   loaded: false,
+  workerStatus: null,
+  justSubmitted: false,
+  submittedAtMs: null,
+  successVisibleUntilMs: null,
 };
 
 /**
@@ -63,9 +75,15 @@ export function useScenePolling(workspaceId: string, intervalMs = 1500) {
     [setNodes, setEdges],
   );
 
-  /** 入力送信直後に「整理中…」を即時点灯させる（次のポーリングで実数に置き換わる） */
+  /** 入力送信直後に「受付済み」を即時点灯させる（次のポーリングで実数に置き換わる） */
   const bumpPending = useCallback(() => {
-    setStatus((s) => ({ ...s, pending: Math.max(s.pending, 1) }));
+    const now = Date.now();
+    setStatus((s) => ({
+      ...s,
+      pending: Math.max(s.pending, 1),
+      justSubmitted: true,
+      submittedAtMs: now,
+    }));
   }, []);
 
   useEffect(() => {
@@ -79,6 +97,7 @@ export function useScenePolling(workspaceId: string, intervalMs = 1500) {
     let busy = false;
     let lastVersion = 0;
     let lastPinsJson = "";
+    let lastPending = 0;
 
     const tick = async () => {
       if (busy) return;
@@ -92,14 +111,36 @@ export function useScenePolling(workspaceId: string, intervalMs = 1500) {
           lastPinsJson = pinsJson;
           applyScene(res.scene, res.pins);
         }
-        setStatus({
-          pending: res.pendingInputs,
-          stale: res.stale ?? false,
-          error: null,
-          sceneTitle: res.scene.title,
-          isEmpty: res.scene.items.length === 0,
-          loaded: true,
+
+        const pending = res.pendingInputs;
+        const now = Date.now();
+        setStatus((prev) => {
+          let successVisibleUntilMs = prev.successVisibleUntilMs;
+          const becameClear =
+            (lastPending > 0 || prev.justSubmitted || prev.pending > 0) && pending === 0;
+          if (becameClear) {
+            successVisibleUntilMs = now + SUCCESS_VISIBLE_MS;
+          } else if (pending > 0) {
+            successVisibleUntilMs = null;
+          } else if (successVisibleUntilMs !== null && now >= successVisibleUntilMs) {
+            successVisibleUntilMs = null;
+          }
+
+          return {
+            pending,
+            stale: res.stale ?? false,
+            error: null,
+            sceneTitle: res.scene.title,
+            isEmpty: res.scene.items.length === 0,
+            loaded: true,
+            workerStatus: res.workerStatus ?? null,
+            // 送信直後フラグは最初の成功ポーリングで落とす（pending 局所値は API 値に置換）
+            justSubmitted: false,
+            submittedAtMs: pending > 0 ? prev.submittedAtMs : null,
+            successVisibleUntilMs,
+          };
         });
+        lastPending = pending;
       } catch {
         if (!stopped) {
           setStatus((s) => ({ ...s, error: "サーバーに接続できません" }));

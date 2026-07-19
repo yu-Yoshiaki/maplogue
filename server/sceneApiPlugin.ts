@@ -2,7 +2,7 @@
 //   GET  /api/workspaces : ワークスペース一覧を返す
 //   POST /api/workspaces : 新しいワークスペースを作成する
 //   POST /api/input : 選択ワークスペースの inbox.jsonl に追記（id 重複は冪等に成功を返す）
-//   GET  /api/scene : scene.json + pins.json + 未処理件数を合成して返す。
+//   GET  /api/scene : scene.json + pins.json + 未処理件数 + worker status を合成して返す。
 //   GET  /api/history : history.json を返す
 //                     scene.json が壊れているときは最後の正常値を stale: true で返す
 //   POST /api/pin   : 選択ワークスペースの pins.json に保存（tmp→rename でアトミック）
@@ -10,12 +10,17 @@
 // 書き手の分離が同時書き込み対策の要:
 //   scene.json / history.json = 監視セッション専有、pins.json = このサーバー専有、
 //   inbox.jsonl = このサーバーが追記・監視セッションは読むだけ。
+//   scene-watch-status.json = 監視デーモン専有（runtime。Git 対象外）。
 
 import crypto from "node:crypto";
 import { promises as fs } from "node:fs";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import path from "node:path";
 import type { Plugin } from "vite";
+import {
+  parseSceneWatchRuntimeStatus,
+  toSceneWorkerStatus,
+} from "../src/reflection/parseRuntimeStatus";
 import { validateScene } from "../src/scene/validateScene";
 import {
   isOrganizeMode,
@@ -25,6 +30,7 @@ import {
   type PinPosition,
   type Pins,
   type Scene,
+  type SceneWorkerStatus,
   type WorkspaceSummary,
 } from "../src/types/scene";
 
@@ -389,17 +395,34 @@ export function sceneApiPlugin(): Plugin {
         sendJson(res, 200, { history: await readHistorySafe(files) });
       };
 
+      const readWorkerStatus = async (workspaceId: string): Promise<SceneWorkerStatus | null> => {
+        const statusPath = path.join(dataDir, "scene-watch-status.json");
+        try {
+          const raw = JSON.parse(await fs.readFile(statusPath, "utf8")) as unknown;
+          const runtime = parseSceneWatchRuntimeStatus(raw);
+          // 壊れている / 無い場合は未起動相当の null。正常に見せる補完はしない。
+          return toSceneWorkerStatus(runtime, workspaceId);
+        } catch {
+          return null;
+        }
+      };
+
       const handleScene = async (files: WorkspaceFiles, res: ServerResponse) => {
         const result = await readSceneSafe(files);
         if (!result) {
           sendJson(res, 503, { error: "scene.json が不正で、返せる正常なキャッシュがありません" });
           return;
         }
-        const [pins, pendingInputs] = await Promise.all([readPinsSafe(files), countPending(files)]);
+        const [pins, pendingInputs, workerStatus] = await Promise.all([
+          readPinsSafe(files),
+          countPending(files),
+          readWorkerStatus(files.id),
+        ]);
         sendJson(res, 200, {
           scene: result.scene,
           pins,
           pendingInputs,
+          workerStatus,
           ...(result.stale ? { stale: true } : {}),
         });
       };
