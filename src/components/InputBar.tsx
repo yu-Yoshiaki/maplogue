@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ORGANIZE_MODE_OPTIONS, resolveOrganizeSubmit } from "../organize/parseOrganizeInput";
+import { appendQuoteToText } from "../quote/formatItemQuote";
 import type { OrganizeMode } from "../types/scene";
 
 function createInboxId(): string {
@@ -36,16 +37,40 @@ export async function attemptSubmit(args: {
   }
 }
 
+export type QuoteInsert = {
+  text: string;
+  nonce: number;
+};
+
 export function InputBar({
   onSubmit,
+  quoteInsert = null,
 }: {
   onSubmit: (id: string, text: string, mode: OrganizeMode) => Promise<void>;
+  /** ノードクリック由来の引用。nonce が変わったときだけ追記する */
+  quoteInsert?: QuoteInsert | null;
 }) {
   const [text, setText] = useState("");
   const [selectedMode, setSelectedMode] = useState<OrganizeMode>("normal");
   const [sending, setSending] = useState(false);
   // 失敗後・同一本文の再送で同じ id を使う。本文変更または成功時にクリアする
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const lastQuoteNonce = useRef(0);
+
+  useEffect(() => {
+    if (!quoteInsert || quoteInsert.nonce === lastQuoteNonce.current) return;
+    lastQuoteNonce.current = quoteInsert.nonce;
+    setText((prev) => appendQuoteToText(prev, quoteInsert.text));
+    setPendingId(null);
+    requestAnimationFrame(() => {
+      const el = textareaRef.current;
+      if (!el) return;
+      el.focus();
+      const end = el.value.length;
+      el.setSelectionRange(end, end);
+    });
+  }, [quoteInsert]);
 
   const resolved = resolveOrganizeSubmit(text, selectedMode);
   const canSubmit = !resolved.emptyBody && !sending;
@@ -87,8 +112,10 @@ export function InputBar({
           </button>
         ))}
       </div>
+      <p className="input-hint">ノードをクリックすると、修正したい対象を引用できます</p>
       <div className="input-bar-row">
         <textarea
+          ref={textareaRef}
           value={text}
           rows={2}
           placeholder="思いつくまま書いて Enter（Shift+Enter で改行）"

@@ -7,10 +7,8 @@ export function NoteNode(props: NodeProps) {
   return (
     <div className={`node note-node tone-${tone}`}>
       <Handle type="target" position={Position.Left} className="handle" />
-      <div className="node-body">
-        <span className="note-icon">{tone === "warning" ? "⚠️" : "💡"}</span>
-        {item.text}
-      </div>
+      <div className="note-tone-label">{tone === "warning" ? "注意" : "メモ"}</div>
+      <div className="node-body">{item.text}</div>
       <Handle type="source" position={Position.Right} className="handle" />
     </div>
   );

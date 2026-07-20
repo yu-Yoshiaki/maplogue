@@ -45,7 +45,16 @@ export function toFlow(scene: Scene, pins: Pins): { nodes: Node[]; edges: Edge[]
       target: e.target,
       label: e.label,
       type: "smoothstep",
-      markerEnd: { type: MarkerType.ArrowClosed },
+      markerEnd: { type: MarkerType.ArrowClosed, width: 16, height: 16, color: "#1150D4" },
+      style: { stroke: "#1150D4", strokeWidth: 1.6 },
+      labelStyle: { fill: "#616084", fontSize: 11, fontWeight: 600 },
+      labelBgStyle: { fill: "#FBF4E4", fillOpacity: 0.92 },
+      labelBgPadding: [4, 6] as [number, number],
+      labelBgBorderRadius: 4,
+      data: {
+        evidence: e.evidence ?? "",
+        label: e.label ?? "",
+      },
     }));
 
   return { nodes, edges };

@@ -220,6 +220,10 @@ export function validateScene(value: unknown): string[] {
     if (!isOptionalString(edge.label)) {
       errors.push(`${where} (${edge.id}) label は文字列である必要があります`);
     }
+    // evidence は任意。空文字も許容（未記入と同義）
+    if (!isOptionalString(edge.evidence)) {
+      errors.push(`${where} (${edge.id}) evidence は文字列である必要があります`);
+    }
   });
 
   return errors;
