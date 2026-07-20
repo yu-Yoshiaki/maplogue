@@ -50,6 +50,11 @@ export interface SceneEdge {
   source: string;
   target: string;
   label?: string;
+  /**
+   * この関係を結んだ短い根拠（入力・発言の要約）。
+   * UI で線をクリックすると表示する。無くてもよい（後方互換）。
+   */
+  evidence?: string;
 }
 
 export interface Scene {

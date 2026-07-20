@@ -86,6 +86,12 @@ tail -f data/scene-watch-daemon.log
 
 Claude Code を手動で使う場合は、`skills/scene-watch-start.md` の手順に従えます。
 
+## 操作のポイント
+
+- **いまここ**: 直近の AI 整理で変わったノードを青枠でハイライトします（カメラは動かしません）。
+- **部分修正**: 気になるノードをクリックすると、入力欄へ `> card_001「タイトル」` の引用が入ります。続けて直したい内容を書いて送ると、監視セッションがその item を優先して直します。
+- **なぜこの線**: エッジをクリックすると、関係名と短い根拠（`evidence`）を表示します。
+
 ## ローカルデータ
 
 `data/scene.sample.json` は公開用のサンプルです。それ以外の `data/` 配下（scene、inbox、history、pins、workspaces、locks、logs、`scene-watch-status.json`）は利用者のローカル runtime data として Git 管理しません。新しい clone では `npm run dev` が初回起動時に空の default ワークスペースを作成します。
@@ -97,7 +103,7 @@ cp data/scene.sample.json data/scene.json
 npm run dev
 ```
 
-card / note（warning）/ list / table / group（子2つ）/ edge が含まれたサンプルが描画される。
+card / note / list / table / group / edge（`evidence` 付き）が含まれたサンプルが描画される。
 
 ## 検証コマンド
 

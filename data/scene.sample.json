@@ -65,37 +65,43 @@
       "id": "edge_001",
       "source": "card_001",
       "target": "card_002",
-      "label": "HTTPS リクエスト"
+      "label": "HTTPS リクエスト",
+      "evidence": "利用者がブラウザから入口へアクセスする流れとして言及された"
     },
     {
       "id": "edge_002",
       "source": "card_002",
       "target": "card_003",
-      "label": "動的リクエストを転送"
+      "label": "動的リクエストを転送",
+      "evidence": "キャッシュで扱えない動的リクエストを ALB へ渡すと説明された"
     },
     {
       "id": "edge_003",
       "source": "card_003",
       "target": "card_004",
-      "label": "ターゲットへ負荷分散"
+      "label": "ターゲットへ負荷分散",
+      "evidence": "ALB が正常な ECS タスクへ振り分ける構成として語られた"
     },
     {
       "id": "edge_004",
       "source": "card_004",
       "target": "card_005",
-      "label": "SQL 読み書き"
+      "label": "SQL 読み書き",
+      "evidence": "アプリがトランザクションデータを RDS に保存するとされた"
     },
     {
       "id": "edge_005",
       "source": "card_004",
       "target": "card_006",
-      "label": "オブジェクトを保存・取得"
+      "label": "オブジェクトを保存・取得",
+      "evidence": "添付ファイルや画像を S3 に置く依存として出てきた"
     },
     {
       "id": "edge_006",
       "source": "card_002",
       "target": "card_006",
-      "label": "静的アセットのオリジン"
+      "label": "静的アセットのオリジン",
+      "evidence": "CloudFront のオリジンの一つが S3 だと補足された"
     }
   ]
 }

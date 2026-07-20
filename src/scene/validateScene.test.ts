@@ -156,4 +156,34 @@ describe("validateScene", () => {
     const errors = validateScene(scene);
     expect(errors.some((e) => e.includes("edge_") && e.includes("3桁以上"))).toBe(true);
   });
+
+  it("edge.evidence の文字列を許容し、非文字列を検出する", () => {
+    expect(
+      validateScene({
+        ...validScene,
+        edges: [
+          {
+            id: "edge_001",
+            source: "card_001",
+            target: "card_002",
+            label: "依存",
+            evidence: "会議で明示された依存",
+          },
+        ],
+      }),
+    ).toEqual([]);
+
+    const errors = validateScene({
+      ...validScene,
+      edges: [
+        {
+          id: "edge_001",
+          source: "card_001",
+          target: "card_002",
+          evidence: 1,
+        },
+      ],
+    });
+    expect(errors.some((e) => e.includes("evidence") && e.includes("文字列"))).toBe(true);
+  });
 });
